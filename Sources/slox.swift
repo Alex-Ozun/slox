@@ -2,41 +2,73 @@ import ArgumentParser
 import Foundation
 
 @main
-struct slox: AsyncParsableCommand {
+final class slox: AsyncParsableCommand {
   @Argument(transform: URL.init(fileURLWithPath:))
   var inputFile: URL?
-  
-  mutating func run() async throws {
+  var hadError = false // weird, but OK
+
+  func run() async throws {
     if let inputFile {
       try await runFile(url: inputFile)
     } else {
       runPrompt()
     }
   }
-}
-
-enum ScannerError: Error {
-  case emptyFile(url: URL)
-}
-
-func runFile(url inputFile: URL) async throws {
-  let fileHandle = try FileHandle(forReadingFrom: inputFile)
-  guard let data = try fileHandle.readToEnd() else {
-    throw ScannerError.emptyFile(url: inputFile)
-  }
-  let text = String(decoding: data, as: UTF8.self)
-  print(text)
-}
-
-func runPrompt() {
-  while true {
-    print("> ", terminator: "")
-    if let line = readLine() {
-      run(line: line)
+  
+  func runFile(url inputFile: URL) async throws {
+    let fileHandle = try FileHandle(forReadingFrom: inputFile)
+    guard let data = try fileHandle.readToEnd() else {
+      throw ScannerError.emptyFile(url: inputFile)
+    }
+    let source = String(decoding: data, as: UTF8.self)
+    run(source: source)
+    if hadError {
+      throw ScannerError.invalidSyntax
     }
   }
+  
+  func runPrompt() {
+    while true {
+      print("> ", terminator: "")
+      //    if let data = try? FileHandle.standardInput.readToEnd() {
+      //      let line = String(decoding: data, as: UTF8.self)
+      if let line = readLine() {
+        run(source: line)
+        hadError = false
+      } else {
+        break
+      }
+    }
+  }
+  
+  func run(source: String) {
+    var scanner = Scanner(
+      source: source,
+      onError: { error in
+        switch error {
+        case let .unexpectedCharacter(lineNumber):
+          self.error(lineNumber: lineNumber, message: "Unexpected character")
+        default: break
+        }
+      }
+    )
+    let tokens = scanner.scanTokens()
+    for token in tokens {
+      print(token)
+    }
+  }
+  
+  func error(lineNumber: Int, message: String) {
+    report(lineNumber: lineNumber, where: "", message: message)
+  }
+  
+  func report(lineNumber: Int, `where`: String, message: String) {
+    let output = "[line \(lineNumber)] Error \(`where`): \(message)"
+    FileHandle.standardError.write(Data(output.utf8))
+    hadError = true
+  }
 }
 
-func run(line: String) {
-  print(line)
+enum LoxError: Error {
+  case invalidSyntax
 }
