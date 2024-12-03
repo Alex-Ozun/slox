@@ -75,10 +75,19 @@ struct Scanner {
     default:
       if character.isDigit {
         number()
+      } else if character.isAlpha {
+        identifier()
       } else {
         onError(ScannerError.unexpectedCharacter(line: line))
       }
     }
+  }
+  
+  private mutating func identifier() {
+    while peek().isAlphaNumeric {
+      _ = advance()
+    }
+    addToken(.identifier)
   }
   
   private mutating func number() {
@@ -167,7 +176,16 @@ struct Scanner {
 
 extension Character {
   var isDigit: Bool {
-//    CharacterSet.decimalDigits
     self >= "0" && self <= "9"
+  }
+  
+  var isAlpha: Bool {
+    (self >= "a" && self <= "z")
+    || (self >= "A" && self <= "Z")
+    || self == "_"
+  }
+  
+  var isAlphaNumeric: Bool {
+    self.isAlpha || self.isDigit
   }
 }
