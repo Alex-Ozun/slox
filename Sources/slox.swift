@@ -21,6 +21,7 @@ final class slox: AsyncParsableCommand {
       throw ScannerError.emptyFile(url: inputFile)
     }
     let source = String(decoding: data, as: UTF8.self)
+    print("source", source)
     run(source: source)
     if hadError {
       throw ScannerError.invalidSyntax
@@ -48,6 +49,8 @@ final class slox: AsyncParsableCommand {
         switch error {
         case let .unexpectedCharacter(lineNumber):
           self.error(lineNumber: lineNumber, message: "Unexpected character")
+        case let .unterminatedString(lineNumber):
+          self.error(lineNumber: lineNumber, message: "Unterminated string")
         default: break
         }
       }

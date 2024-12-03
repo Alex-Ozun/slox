@@ -1,7 +1,7 @@
 struct Token {
   let type: TokenType
   let lexeme: String
-  let literal: AnyObject? // TODO: revisit
+  let literal: Any? // TODO: revisit
   let line: Int
   
   var stringValue: String {

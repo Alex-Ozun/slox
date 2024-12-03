@@ -4,6 +4,7 @@ enum ScannerError: Error {
   case emptyFile(url: URL)
   case invalidSyntax
   case unexpectedCharacter(line: Int)
+  case unterminatedString(line: Int)
 }
 
 struct Scanner {
@@ -39,7 +40,15 @@ struct Scanner {
   }
   
   private mutating func scanToken() {
-    switch advance() {
+    let character = advance()
+//    print("Consumed character", character)
+    guard !character.isNewline else {
+      line += 1
+      return
+    }
+    guard !character.isWhitespace else { return }
+    
+    switch character {
     case "(": addToken(.leftParen)
     case ")": addToken(.rightParen)
     case "{": addToken(.leftBrace)
@@ -56,14 +65,13 @@ struct Scanner {
     case ">": addToken(match("=") ? .greaterEqual : .greater)
     case "/":
       if match("/") {
-        while (peek() != "\n" && !isAtEnd) {
+        while (!peek().isNewline && !isAtEnd) {
           _ = advance()
         }
       } else {
         addToken(.slash)
       }
-    case " ", "\r", "\t": break
-    case "\n": line += 1
+    case "\"": string()
     default:
       onError(ScannerError.unexpectedCharacter(line: line))
     }
@@ -78,11 +86,12 @@ struct Scanner {
   }
                
   private mutating func advance() -> Character {
+    let currentCharacter = source[current]
     current = source.index(after: current)
-    return source[current]
+    return currentCharacter
   }
   
-  private mutating func addToken(_ type: TokenType, literal: AnyObject? = nil) {
+  private mutating func addToken(_ type: TokenType, literal: Any? = nil) {
     let lexeme = String(source[start..<current])
     tokens.append(
       Token(
@@ -103,6 +112,24 @@ struct Scanner {
       current = source.index(after: current)
       return true
     }
+  }
+  
+  private mutating func string() {
+    while (peek() != "\"" && !isAtEnd) {
+      if peek().isNewline {
+        line += 1
+      }
+      _ = advance()
+    }
+    if isAtEnd {
+      onError(.unterminatedString(line: line))
+    }
+    // The closing ".
+    _ = advance()
+    // Trim the surrounding quotes.
+    let start = source.index(after: start)
+    let end = source.index(before: current)
+    addToken(.string, literal: source[start..<end])
   }
   
   private var isAtEnd: Bool {
