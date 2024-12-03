@@ -87,7 +87,14 @@ struct Scanner {
     while peek().isAlphaNumeric {
       _ = advance()
     }
-    addToken(.identifier)
+    let text = source[start..<current]
+    let type: TokenType
+    if let keywordType = Self.keywords[String(text)] {
+      type = keywordType
+    } else {
+      type = .identifier
+    }
+    addToken(type)
   }
   
   private mutating func number() {
@@ -188,4 +195,25 @@ extension Character {
   var isAlphaNumeric: Bool {
     self.isAlpha || self.isDigit
   }
+}
+
+extension Scanner {
+  static let keywords: [String: TokenType] = [
+    "and": .and,
+    "class": .`class`,
+    "else": .`else`,
+    "false": .`false`,
+    "for": .`for`,
+    "fun": .`fun`,
+    "if": .`if`,
+    "nil": .`nil`,
+    "or": .or,
+    "print": .print,
+    "return": .`return`,
+    "super": .`super`,
+    "this": .`this`,
+    "true": .`true`,
+    "var": .`var`,
+    "while": .`while`,
+    ]
 }
