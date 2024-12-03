@@ -29,5 +29,14 @@ func runFile(url inputFile: URL) async throws {
 }
 
 func runPrompt() {
-  fatalError("umimplemented")
+  while true {
+    print("> ", terminator: "")
+    if let line = readLine() {
+      run(line: line)
+    }
+  }
+}
+
+func run(line: String) {
+  print(line)
 }
