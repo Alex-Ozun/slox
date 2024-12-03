@@ -41,7 +41,7 @@ struct Scanner {
   
   private mutating func scanToken() {
     let character = advance()
-//    print("Consumed character", character)
+    print("Consumed character", character)
     guard !character.isNewline else {
       line += 1
       return
@@ -176,8 +176,9 @@ struct Scanner {
     addToken(.string, literal: source[start..<end])
   }
   
+  // NB: this should really be called beyond end or something
   private var isAtEnd: Bool {
-    return source.index(after: current) == source.endIndex;
+    current >= source.endIndex
   }
 }
 
