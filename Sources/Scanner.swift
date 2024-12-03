@@ -73,7 +73,35 @@ struct Scanner {
       }
     case "\"": string()
     default:
-      onError(ScannerError.unexpectedCharacter(line: line))
+      if character.isDigit {
+        number()
+      } else {
+        onError(ScannerError.unexpectedCharacter(line: line))
+      }
+    }
+  }
+  
+  private mutating func number() {
+    while peek().isDigit {
+      _ = advance()
+    }
+    if (peek() == "." && peekNext().isDigit) {
+      _ = advance()
+      
+      while (peek().isDigit) {
+        _ = advance()
+      }
+    }
+    let literal = source[start..<current]
+    addToken(.number, literal: Double(literal))
+  }
+  
+  private func peekNext() -> Character {
+    let nextIndex = source.index(after: current)
+    if nextIndex >= source.endIndex {
+      return "\0"
+    } else {
+      return source[nextIndex]
     }
   }
   
@@ -134,5 +162,12 @@ struct Scanner {
   
   private var isAtEnd: Bool {
     return source.index(after: current) == source.endIndex;
+  }
+}
+
+extension Character {
+  var isDigit: Bool {
+//    CharacterSet.decimalDigits
+    self >= "0" && self <= "9"
   }
 }
