@@ -25,22 +25,29 @@ enum TokenType {
   case string
   case number
   // Keywords.
-  case and
-  case `class`
-  case `else`
-  case `false`
-  case fun
-  case `for`
-  case `if`
-  case `nil`
-  case or
-  case print
-  case `return`
-  case `super`
-  case `this`
-  case `true`
-  case `var`
-  case `while`
+  case keyword(Keyword)
   // Control
   case eof
 }
+
+extension TokenType {
+  enum Keyword: String {
+    case and
+    case `class`
+    case `else`
+    case `false`
+    case fun
+    case `for`
+    case `if`
+    case `nil`
+    case or
+    case print
+    case `return`
+    case `super`
+    case `this`
+    case `true`
+    case `var`
+    case `while`
+  }
+}
+

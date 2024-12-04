@@ -70,6 +70,10 @@ final class slox: AsyncParsableCommand {
     let output = "[line \(lineNumber)] Error \(`where`): \(message)"
     FileHandle.standardError.write(Data(output.utf8))
     hadError = true
+    
+    @Sendable func doSomething() async {
+      
+    }
   }
 }
 
