@@ -1,4 +1,4 @@
-enum TokenType {
+enum TokenType: Equatable {
   // Single-character tokens.
   case leftParen
   case rightParen

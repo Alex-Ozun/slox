@@ -44,7 +44,7 @@ final class slox: AsyncParsableCommand {
   }
   
   func run(source: String) {
-    var scanner = Scanner(
+    let scanner = Scanner(
       source: source,
       onError: { error in
         switch error {
@@ -57,8 +57,14 @@ final class slox: AsyncParsableCommand {
       }
     )
     let tokens = scanner.scanTokens()
-    for token in tokens {
-      print(token)
+    let parser = Parser<Expr>(
+      tokens: tokens,
+      onError: { error in
+        self.error(token: error.token, message: error.message)
+      }
+    )
+    if let expr = parser.parse(), !hadError {
+      print(ASTPrinter.string(for: expr))
     }
   }
   
@@ -70,9 +76,13 @@ final class slox: AsyncParsableCommand {
     let output = "[line \(lineNumber)] Error \(`where`): \(message)"
     FileHandle.standardError.write(Data(output.utf8))
     hadError = true
-    
-    @Sendable func doSomething() async {
-      
+  }
+  
+  func error(token: Token, message: String) {
+    if token.type == .eof {
+      report(lineNumber: token.line, where: " at end", message: message)
+    } else {
+      report(lineNumber: token.line, where: " at '\(token.lexeme)'", message: message)
     }
   }
 }

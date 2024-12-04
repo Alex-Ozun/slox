@@ -1,5 +1,5 @@
-struct ASTPrinter {
-  func string(for expr: Expr) -> String {
+enum ASTPrinter {
+  static func string(for expr: Expr) -> String {
     switch expr {
     case let .binary(left, `operator`, right):
       return parenthesize(`operator`.lexeme, left, right)
@@ -19,7 +19,7 @@ struct ASTPrinter {
     }
   }
   
-  private func parenthesize(_ name: String, _ exprs: Expr...) -> String {
+  private static func parenthesize(_ name: String, _ exprs: Expr...) -> String {
     var result: String = ""
     result.append("(")
     result.append(name)

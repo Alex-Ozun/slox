@@ -1,7 +1,7 @@
-struct Token {
+struct Token: Sendable {
   let type: TokenType
   let lexeme: String
-  let literal: Any? // TODO: revisit
+  let literal: (any Sendable)? // TODO: revisit
   let line: Int
   
   var stringValue: String {

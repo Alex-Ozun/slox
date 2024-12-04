@@ -7,7 +7,7 @@ enum ScannerError: Error {
   case unterminatedString(line: Int)
 }
 
-struct Scanner {
+final class Scanner {
   let source: String
   var tokens: [Token] = []
   let onError: (ScannerError) -> Void
@@ -23,7 +23,7 @@ struct Scanner {
     self.current = source.startIndex
   }
   
-  mutating func scanTokens() -> [Token] {
+  func scanTokens() -> [Token] {
     while !isAtEnd {
       start = current
       scanToken()
@@ -39,7 +39,7 @@ struct Scanner {
     return tokens
   }
   
-  private mutating func scanToken() {
+  private func scanToken() {
     let character = advance()
     print("Consumed character", character)
     guard !character.isNewline else {
@@ -83,7 +83,7 @@ struct Scanner {
     }
   }
   
-  private mutating func identifier() {
+  private func identifier() {
     while peek().isAlphaNumeric {
       _ = advance()
     }
@@ -97,7 +97,7 @@ struct Scanner {
     addToken(type)
   }
   
-  private mutating func number() {
+  private func number() {
     while peek().isDigit {
       _ = advance()
     }
@@ -129,13 +129,13 @@ struct Scanner {
     }
   }
                
-  private mutating func advance() -> Character {
+  private func advance() -> Character {
     let currentCharacter = source[current]
     current = source.index(after: current)
     return currentCharacter
   }
   
-  private mutating func addToken(_ type: TokenType, literal: Any? = nil) {
+  private func addToken(_ type: TokenType, literal: (any Sendable)? = nil) {
     let lexeme = String(source[start..<current])
     tokens.append(
       Token(
@@ -147,7 +147,7 @@ struct Scanner {
     )
   }
    
-  private mutating func match(_ expected: Character) -> Bool {
+  private func match(_ expected: Character) -> Bool {
     if isAtEnd {
       return false
     } else if source[current] != expected {
@@ -158,7 +158,7 @@ struct Scanner {
     }
   }
   
-  private mutating func string() {
+  private func string() {
     while (peek() != "\"" && !isAtEnd) {
       if peek().isNewline {
         line += 1

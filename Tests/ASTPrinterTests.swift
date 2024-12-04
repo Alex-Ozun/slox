@@ -7,6 +7,7 @@ import Testing
   #expect(actual == expected)
 }
 
+// -123 * (45.67)
 private func buildAST<E: Binary & Unary & Grouping & Literal>() -> E {
   .binary(
     left: .unary(
