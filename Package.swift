@@ -15,8 +15,13 @@ let package = Package(
         .executableTarget(
             name: "slox",
             dependencies: [
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+              .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
+        ),
+        .testTarget(
+          name: "SloxTests",
+          dependencies: ["slox"],
+          path: "Tests"
         ),
     ]
 )
