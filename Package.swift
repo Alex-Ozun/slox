@@ -16,7 +16,8 @@ let package = Package(
             name: "slox",
             dependencies: [
               .product(name: "ArgumentParser", package: "swift-argument-parser"),
-            ]
+            ],
+            path: "Sources"
         ),
         .testTarget(
           name: "SloxTests",

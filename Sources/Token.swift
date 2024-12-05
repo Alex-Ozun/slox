@@ -9,16 +9,38 @@ struct Token: Sendable, Equatable {
   }
 }
 
-enum LiteralValue: Equatable, Sendable, CustomStringConvertible {
+public enum LiteralValue: Equatable, Sendable, CustomStringConvertible {
   case string(String)
   case number(Double)
   case boolean(Bool)
   
-  var description: String {
+  public var description: String {
     switch self {
-    case .string(let string): return string
-    case .number(let number): return String(number)
-    case .boolean(let boolean): return String(boolean)
+    case .string(let string):
+      return string
+      
+    case .number(let number):
+      let string = String(number)
+      if string.hasSuffix(".0") {
+        return String(string.dropLast(2))
+      } else {
+        return string
+      }
+      
+    case .boolean(let boolean):
+      return String(boolean)
+    }
+  }
+}
+
+extension Optional where Wrapped == LiteralValue {
+  public var description: String {
+    switch self {
+      case .none:
+      return "nil"
+      
+    case .some(let value):
+      return String(describing: value)
     }
   }
 }

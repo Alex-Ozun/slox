@@ -1,12 +1,21 @@
 import ArgumentParser
 import Foundation
 
+enum SloxError: Error {
+  case syntaxError
+  case runtimeError
+}
+
+// TODO: revisit 
+nonisolated(unsafe) let interpreter = Interpreter()
+
 @main
 final class slox: AsyncParsableCommand {
   @Argument(transform: URL.init(fileURLWithPath:))
   var inputFile: URL?
   var hadError = false // weird, but OK
-
+  var hadRuntimeError = false
+  
   func run() async throws {
     if let inputFile {
       try await runFile(url: inputFile)
@@ -24,7 +33,10 @@ final class slox: AsyncParsableCommand {
     print("source", source)
     run(source: source)
     if hadError {
-      throw ScannerError.invalidSyntax
+      throw SloxError.syntaxError
+    }
+    if hadRuntimeError {
+      throw SloxError.runtimeError
     }
   }
   
@@ -64,7 +76,9 @@ final class slox: AsyncParsableCommand {
       }
     )
     if let expr = parser.parse(), !hadError {
-      print(ASTPrinter.string(for: expr))
+      interpreter.interpret(expr) { error in
+        self.runtimeError(error)
+      }
     }
   }
   
@@ -84,6 +98,11 @@ final class slox: AsyncParsableCommand {
     } else {
       report(lineNumber: token.line, where: " at '\(token.lexeme)'", message: message)
     }
+  }
+  
+  func runtimeError(_ error: RuntimeError) {
+    print(error.message + "\n[line \(error.token.line)]")
+    hadRuntimeError = true
   }
 }
 

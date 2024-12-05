@@ -15,7 +15,7 @@ protocol Unary: Expression {
   static func unary(operator: Token, operand: Self) -> Self
 }
 
-indirect enum Expr: Equatable, Binary, Grouping, Literal, Unary {
+indirect enum Expr: Sendable, Equatable, Binary, Grouping, Literal, Unary {
   case binary(left: Expr, operator: Token, right: Expr)
   case grouping(Expr)
   case literal(value: LiteralValue?)
