@@ -41,7 +41,6 @@ final class Scanner {
   
   private func scanToken() {
     let character = advance()
-    print("Consumed character", character)
     guard !character.isNewline else {
       line += 1
       return
@@ -108,8 +107,9 @@ final class Scanner {
         _ = advance()
       }
     }
-    let literal = source[start..<current]
-    addToken(.number, literal: Double(literal))
+    let rawLiteral = source[start..<current]
+    let literal = Double(rawLiteral).map(LiteralValue.number)
+    addToken(.number, literal: literal)
   }
   
   private func peekNext() -> Character {
@@ -135,7 +135,7 @@ final class Scanner {
     return currentCharacter
   }
   
-  private func addToken(_ type: TokenType, literal: (any Sendable)? = nil) {
+  private func addToken(_ type: TokenType, literal: LiteralValue? = nil) {
     let lexeme = String(source[start..<current])
     tokens.append(
       Token(
@@ -173,7 +173,8 @@ final class Scanner {
     // Trim the surrounding quotes.
     let start = source.index(after: start)
     let end = source.index(before: current)
-    addToken(.string, literal: source[start..<end])
+    let literal = String(source[start..<end])
+    addToken(.string, literal: .string(literal))
   }
   
   // NB: this should really be called beyond end or something

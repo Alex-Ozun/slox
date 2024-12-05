@@ -78,15 +78,13 @@ final class Parser<Expr: ParserExpr> {
   }
   
   private func unary() throws(ParserError) -> Expr {
-    var expr = try primary()
-    
     while match(.bang, .minus) {
       let op = previous()
       let operand = try unary()
-      expr = .unary(operator: op, operand: operand)
+      return .unary(operator: op, operand: operand)
     }
     
-    return expr
+    return try primary()
   }
   
   private func primary() throws(ParserError) -> Expr {
@@ -120,7 +118,7 @@ final class Parser<Expr: ParserExpr> {
   private func synchronize() {
     _ = advance()
     
-    while !isAtEnd() {
+    while !isAtEnd {
       if previous().type == .semicolon {
         return
       }
@@ -145,7 +143,7 @@ final class Parser<Expr: ParserExpr> {
 //  private void synchronize() {
 //     advance();
 //
-//     while (!isAtEnd()) {
+//     while (!isAtEnd) {
 //       if (previous().type == SEMICOLON) return;
 //
 //       switch (peek().type) {
@@ -175,7 +173,7 @@ final class Parser<Expr: ParserExpr> {
   }
   
   private func check(_ type: TokenType) -> Bool {
-    if isAtEnd() {
+    if isAtEnd {
       return false
     } else {
       return peek().type == type;
@@ -187,7 +185,7 @@ final class Parser<Expr: ParserExpr> {
   }
   
   private func advance() -> Token {
-    if !isAtEnd() {
+    if !isAtEnd {
       current += 1
     }
     return previous()
@@ -197,7 +195,8 @@ final class Parser<Expr: ParserExpr> {
     tokens[current]
   }
   
-  private func isAtEnd() -> Bool {
+  private var isAtEnd: Bool {
     peek().type == .eof
   }
 }
+
