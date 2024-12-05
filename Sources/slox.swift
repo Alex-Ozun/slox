@@ -6,7 +6,7 @@ enum SloxError: Error {
   case runtimeError
 }
 
-// TODO: revisit 
+// TODO: revisit
 nonisolated(unsafe) let interpreter = Interpreter()
 
 @main
@@ -69,6 +69,7 @@ final class slox: AsyncParsableCommand {
       }
     )
     let tokens = scanner.scanTokens()
+    print("tokens", tokens)
     let parser = Parser<Expr>(
       tokens: tokens,
       onError: { error in
@@ -76,6 +77,7 @@ final class slox: AsyncParsableCommand {
       }
     )
     if let expr = parser.parse(), !hadError {
+      print(ASTPrinter.string(for: expr))
       interpreter.interpret(expr) { error in
         self.runtimeError(error)
       }
