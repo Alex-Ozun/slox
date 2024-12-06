@@ -12,6 +12,9 @@ enum ASTPrinter {
       
     case let .unary(`operator`, operand):
       return parenthesize(`operator`.lexeme, operand)
+      
+    case let .variable(name):
+      return name.lexeme
     }
   }
   

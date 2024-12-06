@@ -14,10 +14,14 @@ protocol Literal: Expression {
 protocol Unary: Expression {
   static func unary(operator: Token, operand: Self) -> Self
 }
+protocol Variable: Expression {
+  static func variable(name: Token) -> Self
+}
 
-indirect enum Expr: Sendable, Equatable, Binary, Grouping, Literal, Unary {
+indirect enum Expr: Sendable, Equatable, Binary, Grouping, Literal, Unary, Variable {
   case binary(left: Expr, operator: Token, right: Expr)
   case grouping(Expr)
   case literal(value: LiteralValue?)
   case unary(operator: Token, operand: Expr)
+  case variable(name: Token)
 }

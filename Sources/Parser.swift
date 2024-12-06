@@ -1,7 +1,7 @@
 import Foundation
 
-typealias ParserStmt = ExpressionStmt & Print
-typealias ParserExpr = Binary & Unary & Literal & Grouping
+typealias ParserStmt = ExpressionStmt & Print & Var
+typealias ParserExpr = Binary & Grouping & Literal & Unary & Variable
 
 struct ParserError: Error {
   let token: Token
@@ -22,16 +22,37 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
   func parse() -> [Stmt] {
     var statements: [Stmt] = []
     
-    do {
-      while !isAtEnd {
-        statements.append(try statement())
-      }
-    } catch {
-      fatalError()
+    while !isAtEnd {
+      statements.append(declaration()!) // TODO: revisit optional
     }
     
     return statements
    }
+  
+  private func declaration() -> Stmt? {
+    do {
+      if match(.keyword(.var)) {
+        return try varDeclaration()
+      } else {
+        return try statement()
+      }
+    } catch {
+      synchronize()
+      return nil
+    }
+  }
+  
+  private func varDeclaration() throws(ParserError) -> Stmt {
+    let name = try consume(.identifier, errorMessage: "Expect variable name.")
+    var initializer: Expr?
+    
+    if match(.equal) {
+      initializer = try expression()
+    }
+    
+    _ = try consume(.semicolon, errorMessage: "Expect ';' after variable.")
+    return .var(name: name, initializer: initializer)
+  }
   
   private func statement() throws(ParserError) -> Stmt {
     if match(.keyword(.print)) {
@@ -127,6 +148,8 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
       let expression = try expression()
       _ = try consume(.rightParen, errorMessage: "Expect ')' after expression." )
       return .grouping(expression)
+    } else if match(.identifier) {
+      return .variable(name: previous())
     } else {
       throw ParserError(token: peek(), message: "Expect expression.")
     }

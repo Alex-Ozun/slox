@@ -23,6 +23,9 @@ final class Interpreter {
     case let .print(expr):
       let value = try evaluate(expr)
       print(value.unwrappedStringValue)
+      
+    case .var(name: let name, initializer: let initializer):
+      fatalError()
     }
   }
   
@@ -102,6 +105,9 @@ final class Interpreter {
       default:
         fatalError("unreachable")
       }
+      
+    case .variable(name: let name):
+      fatalError()
     }
   }
   

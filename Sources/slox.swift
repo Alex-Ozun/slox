@@ -44,8 +44,6 @@ final class slox: AsyncParsableCommand {
   func runPrompt() {
     while true {
       print("> ", terminator: "")
-      //    if let data = try? FileHandle.standardInput.readToEnd() {
-      //      let line = String(decoding: data, as: UTF8.self)
       if let line = readLine() {
         print("line", line)
         run(source: line)
