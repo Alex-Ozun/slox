@@ -33,15 +33,9 @@ public enum LiteralValue: Equatable, Sendable, CustomStringConvertible {
   }
 }
 
-extension Optional where Wrapped == LiteralValue {
-  public var description: String {
-    switch self {
-      case .none:
-      return "nil"
-      
-    case .some(let value):
-      return String(describing: value)
-    }
+extension LiteralValue? {
+  var unwrappedStringValue: String {
+    map(String.init) ?? String(describing: self)
   }
 }
 

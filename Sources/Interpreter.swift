@@ -4,18 +4,25 @@ struct RuntimeError: Error {
 }
   
 final class Interpreter {
-  func interpret(_ expr: Expr, onError: @escaping (RuntimeError) -> Void) {
+  func interpret(_ statements: [Stmt<Expr>], onError: @escaping (RuntimeError) -> Void) {
     do {
-      let value = try evaluate(expr)
-      let valueString = switch value {
-      case .some(let value):
-        String(describing: value)
-      case .none:
-        "nil"
+      for stmt in statements {
+        try execute(stmt)
       }
-      print(valueString)
+//      let value = try evaluate(expr)
+//      print(value.unwrappedStringValue)
     } catch {
       onError(error)
+    }
+  }
+  
+  private func execute(_ stmt: Stmt<Expr>) throws(RuntimeError) {
+    switch stmt {
+    case let .expression(expr):
+      _ = try evaluate(expr)
+    case let .print(expr):
+      let value = try evaluate(expr)
+      print(value.unwrappedStringValue)
     }
   }
   

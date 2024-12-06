@@ -8,11 +8,7 @@ enum ASTPrinter {
       return parenthesize("group", expr)
       
     case let .literal(value):
-      if let value {
-        return String(describing: value)
-      } else {
-        return "nil"
-      }
+      return value.unwrappedStringValue
       
     case let .unary(`operator`, operand):
       return parenthesize(`operator`.lexeme, operand)

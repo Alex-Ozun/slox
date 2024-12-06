@@ -30,7 +30,8 @@ final class slox: AsyncParsableCommand {
       throw ScannerError.emptyFile(url: inputFile)
     }
     let source = String(decoding: data, as: UTF8.self)
-    print("source", source)
+    print("Source code:")
+    print(source)
     run(source: source)
     if hadError {
       throw SloxError.syntaxError
@@ -69,16 +70,17 @@ final class slox: AsyncParsableCommand {
       }
     )
     let tokens = scanner.scanTokens()
-    print("tokens", tokens)
-    let parser = Parser<Expr>(
+//    print("tokens", tokens)
+    let parser = Parser<Stmt<Expr>>(
       tokens: tokens,
       onError: { error in
         self.error(token: error.token, message: error.message)
       }
     )
-    if let expr = parser.parse(), !hadError {
-      print(ASTPrinter.string(for: expr))
-      interpreter.interpret(expr) { error in
+    let statements = parser.parse()
+    if !hadError {
+//      print(ASTPrinter.string(for: expr))
+      interpreter.interpret(statements) { error in
         self.runtimeError(error)
       }
     }

@@ -1,5 +1,6 @@
 import Foundation
 
+typealias ParserStmt = ExpressionStmt & Print
 typealias ParserExpr = Binary & Unary & Literal & Grouping
 
 struct ParserError: Error {
@@ -7,7 +8,8 @@ struct ParserError: Error {
   let message: String
 }
 
-final class Parser<Expr: ParserExpr> {
+final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
+  typealias Expr = Stmt.ExpressionType
   private let tokens: [Token]
   private var current: Int = 0
   private let onError: (ParserError) -> Void
@@ -17,13 +19,38 @@ final class Parser<Expr: ParserExpr> {
     self.onError = onError
   }
   
-  func parse() -> Expr? {
-     do {
-       return try expression()
-     } catch {
-       return nil
-     }
+  func parse() -> [Stmt] {
+    var statements: [Stmt] = []
+    
+    do {
+      while !isAtEnd {
+        statements.append(try statement())
+      }
+    } catch {
+      fatalError()
+    }
+    
+    return statements
    }
+  
+  private func statement() throws(ParserError) -> Stmt {
+    if match(.keyword(.print)) {
+      return try printStatement()
+    }
+    return try expressionStatement()
+  }
+  
+  private func printStatement() throws(ParserError) -> Stmt {
+    let expr = try expression()
+    _ = try consume(.semicolon, errorMessage: "Expect ';' after value.")
+    return .print(expr)
+  }
+  
+  private func expressionStatement() throws(ParserError) -> Stmt {
+    let expr = try expression()
+    _ = try consume(.semicolon, errorMessage: "Expect ';' after value.")
+    return .expression(expr)
+  }
   
   private func expression() throws(ParserError) -> Expr {
     return try equality()
