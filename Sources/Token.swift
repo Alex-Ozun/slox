@@ -13,6 +13,7 @@ public enum LiteralValue: Equatable, Sendable, CustomStringConvertible {
   case string(String)
   case number(Double)
   case boolean(Bool)
+  case `nil`
   
   public var description: String {
     switch self {
@@ -29,6 +30,9 @@ public enum LiteralValue: Equatable, Sendable, CustomStringConvertible {
       
     case .boolean(let boolean):
       return String(boolean)
+      
+    case .nil:
+      return "nil"
     }
   }
 }

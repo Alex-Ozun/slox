@@ -141,7 +141,7 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
     } else if match(.keyword(.false)) {
       return .literal(value: false)
     } else if match(.keyword(.nil)) {
-      return .literal(value: nil)
+      return .literal(value: .nil)
     } else if match(.number, .string) {
       return .literal(value: previous().literal)
     } else if match(.leftParen) {

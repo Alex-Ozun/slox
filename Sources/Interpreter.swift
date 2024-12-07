@@ -4,13 +4,13 @@ struct RuntimeError: Error {
 }
   
 final class Interpreter {
+  private let environment = Environment()
+  
   func interpret(_ statements: [Stmt<Expr>], onError: @escaping (RuntimeError) -> Void) {
     do {
       for stmt in statements {
         try execute(stmt)
       }
-//      let value = try evaluate(expr)
-//      print(value.unwrappedStringValue)
     } catch {
       onError(error)
     }
@@ -24,12 +24,16 @@ final class Interpreter {
       let value = try evaluate(expr)
       print(value.unwrappedStringValue)
       
-    case .var(name: let name, initializer: let initializer):
-      fatalError()
+    case let .var(name, initializer):
+      var value: LoxValue? = nil
+      if let initializer {
+        value = try evaluate(initializer)
+      }
+      environment.define(name: name.lexeme, value: value)
     }
   }
   
-  private func evaluate(_ expr: Expr) throws(RuntimeError) -> LiteralValue? { //TODO: revisit return type
+  private func evaluate(_ expr: Expr) throws(RuntimeError) -> LoxValue? { //TODO: revisit return type
     switch expr {
     case let .binary(left, `operator`, right):
       let leftValue = try evaluate(left)
@@ -88,7 +92,7 @@ final class Interpreter {
       return try evaluate(expr)
     
     case let .literal(value):
-      return value
+      return value.map(LoxValue.init)
       
     case let .unary(`operator`, operand):
       let operandValue = try evaluate(operand)
@@ -96,8 +100,11 @@ final class Interpreter {
       case let (.minus, .number(number)):
         return .number(-number)
         
-      case let (.bang, value):
+      case let (.bang, .some(value)):
         return .boolean(!isTruthy(value))
+        
+      case (.bang, .none):
+        throw RuntimeError(token: `operator`, message: "Operand must be a value.")
         
       case (.minus, _):
         throw RuntimeError(token: `operator`, message: "Operand must be a number.")
@@ -106,12 +113,12 @@ final class Interpreter {
         fatalError("unreachable")
       }
       
-    case .variable(name: let name):
-      fatalError()
+    case let .variable(name):
+      return try environment.get(name: name)
     }
   }
   
-  private func isTruthy(_ value: LiteralValue?) -> Bool {
+  private func isTruthy(_ value: LoxValue?) -> Bool {
     switch value {
     case .none:
       return false
