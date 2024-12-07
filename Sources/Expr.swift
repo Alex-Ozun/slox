@@ -16,12 +16,26 @@ protocol Unary: Expression {
 }
 protocol Variable: Expression {
   static func variable(name: Token) -> Self
+  var variable: Token? { get }
+}
+protocol Assign: Expression {
+  static func assign(name: Token, expression: Self) -> Self
 }
 
-indirect enum Expr: Sendable, Equatable, Binary, Grouping, Literal, Unary, Variable {
+indirect enum Expr: Sendable, Equatable, Binary, Grouping, Literal, Unary, Variable, Assign {
+  case assign(name: Token, expression: Expr)
   case binary(left: Expr, operator: Token, right: Expr)
   case grouping(Expr)
   case literal(value: LiteralValue?)
   case unary(operator: Token, operand: Expr)
   case variable(name: Token)
+  
+  var variable: Token? {
+    switch self {
+    case let .variable(name):
+      return name
+    default:
+      return nil
+    }
+  }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
 typealias ParserStmt = ExpressionStmt & Print & Var
-typealias ParserExpr = Binary & Grouping & Literal & Unary & Variable
+typealias ParserExpr = Binary & Grouping & Literal & Unary & Variable & Assign
 
 struct ParserError: Error {
   let token: Token
@@ -27,7 +27,7 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
     }
     
     return statements
-   }
+  }
   
   private func declaration() -> Stmt? {
     do {
@@ -74,7 +74,21 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
   }
   
   private func expression() throws(ParserError) -> Expr {
-    return try equality()
+    return try assignment()
+  }
+  
+  private func assignment() throws(ParserError) -> Expr {
+    let expr = try equality()
+    if match(.equal) {
+      let equals = previous()
+      let expression = try assignment()
+      if let variable = expr.variable {
+        return .assign(name: variable, expression: expression)
+      } else {
+        onError(ParserError(token: equals, message: "Invalid assignment target."))
+      }
+    }
+    return expr
   }
   
   private func equality() throws(ParserError) -> Expr {
@@ -183,34 +197,34 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
           .keyword(.print),
           .keyword(.return):
         return
-      
+        
       default: break
       }
       _ = advance()
     }
   }
   
-//  private void synchronize() {
-//     advance();
-//
-//     while (!isAtEnd) {
-//       if (previous().type == SEMICOLON) return;
-//
-//       switch (peek().type) {
-//         case CLASS:
-//         case FUN:
-//         case VAR:
-//         case FOR:
-//         case IF:
-//         case WHILE:
-//         case PRINT:
-//         case RETURN:
-//           return;
-//       }
-//
-//       advance();
-//     }
-//   }
+  //  private void synchronize() {
+  //     advance();
+  //
+  //     while (!isAtEnd) {
+  //       if (previous().type == SEMICOLON) return;
+  //
+  //       switch (peek().type) {
+  //         case CLASS:
+  //         case FUN:
+  //         case VAR:
+  //         case FOR:
+  //         case IF:
+  //         case WHILE:
+  //         case PRINT:
+  //         case RETURN:
+  //           return;
+  //       }
+  //
+  //       advance();
+  //     }
+  //   }
   
   private func match(_ tokens: TokenType...) -> Bool {
     for token in tokens {

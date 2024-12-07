@@ -1,6 +1,9 @@
 enum ASTPrinter {
   static func string(for expr: Expr) -> String {
     switch expr {
+    case let .assign(name, expression):
+      return "\(name.lexeme) \(string(for: expression))"
+      
     case let .binary(left, `operator`, right):
       return parenthesize(`operator`.lexeme, left, right)
     
@@ -8,8 +11,7 @@ enum ASTPrinter {
       return parenthesize("group", expr)
       
     case let .literal(value):
-      fatalError()
-//      return value.unwrappedStringValue
+      return value.unwrappedStringValue
       
     case let .unary(`operator`, operand):
       return parenthesize(`operator`.lexeme, operand)
