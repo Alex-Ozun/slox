@@ -36,7 +36,9 @@ final class Interpreter {
   private func evaluate(_ expr: Expr) throws(RuntimeError) -> LoxValue? { //TODO: revisit return type
     switch expr {
     case let .assign(name, expression):
-      fatalError()
+      let value = try evaluate(expression)
+      environment.define(name: name.lexeme, value: value)
+      return value
       
     case let .binary(left, `operator`, right):
       let leftValue = try evaluate(left)
@@ -117,7 +119,7 @@ final class Interpreter {
       }
       
     case let .variable(name):
-      return try environment.get(name: name)
+      return try environment.getValue(for: name)
     }
   }
   
