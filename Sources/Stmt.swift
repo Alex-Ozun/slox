@@ -14,8 +14,12 @@ protocol Var: Statement {
   static func `var`(name: Token, initializer: ExpressionType?) -> Self
 }
 
+protocol Block: Statement {
+  static func block(_ statements: [Self]) -> Self
+}
 
-indirect enum Stmt<ExpressionType: Expression & Sendable & Equatable>: Sendable, Equatable, ExpressionStmt, Print, Var {
+indirect enum Stmt<ExpressionType: Expression & Sendable & Equatable>: Sendable, Equatable, ExpressionStmt, Print, Var, Block {
+  case block([Stmt])
   case expression(_ expression: ExpressionType)
   case print(_ expression: ExpressionType)
   case `var`(name: Token, initializer: ExpressionType?)

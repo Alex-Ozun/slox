@@ -1,6 +1,6 @@
 import Foundation
 
-typealias ParserStmt = ExpressionStmt & Print & Var
+typealias ParserStmt = Block & ExpressionStmt & Print & Var
 typealias ParserExpr = Binary & Grouping & Literal & Unary & Variable & Assign
 
 struct ParserError: Error {
@@ -57,6 +57,8 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
   private func statement() throws(ParserError) -> Stmt {
     if match(.keyword(.print)) {
       return try printStatement()
+    } else if match(.leftBrace) {
+      return .block(try block())
     }
     return try expressionStatement()
   }
@@ -66,6 +68,27 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
     _ = try consume(.semicolon, errorMessage: "Expect ';' after value.")
     return .print(expr)
   }
+  
+  private func block() throws(ParserError) -> [Stmt] {
+    var statements: [Stmt] = []
+    while !check(.rightBrace) && !isAtEnd {
+      let stmt = declaration()! // TODO: revisit force unwrap
+      statements.append(stmt)
+    }
+    _ = try consume(.rightBrace, errorMessage: "Expect '}' after block.")
+    return statements
+  }
+  
+//  private List<Stmt> block() {
+//      List<Stmt> statements = new ArrayList<>();
+//
+//      while (!check(RIGHT_BRACE) && !isAtEnd()) {
+//        statements.add(declaration());
+//      }
+//
+//      consume(RIGHT_BRACE, "Expect '}' after block.");
+//      return statements;
+//    }
   
   private func expressionStatement() throws(ParserError) -> Stmt {
     let expr = try expression()
@@ -186,7 +209,6 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
       if previous().type == .semicolon {
         return
       }
-      
       switch peek().type {
       case .keyword(.class),
           .keyword(.fun),
@@ -198,33 +220,12 @@ final class Parser<Stmt: ParserStmt> where Stmt.ExpressionType: ParserExpr {
           .keyword(.return):
         return
         
-      default: break
+      default:
+        break
       }
       _ = advance()
     }
   }
-  
-  //  private void synchronize() {
-  //     advance();
-  //
-  //     while (!isAtEnd) {
-  //       if (previous().type == SEMICOLON) return;
-  //
-  //       switch (peek().type) {
-  //         case CLASS:
-  //         case FUN:
-  //         case VAR:
-  //         case FOR:
-  //         case IF:
-  //         case WHILE:
-  //         case PRINT:
-  //         case RETURN:
-  //           return;
-  //       }
-  //
-  //       advance();
-  //     }
-  //   }
   
   private func match(_ tokens: TokenType...) -> Bool {
     for token in tokens {

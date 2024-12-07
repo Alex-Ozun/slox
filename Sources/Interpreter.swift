@@ -4,7 +4,7 @@ struct RuntimeError: Error {
 }
   
 final class Interpreter {
-  private let environment = Environment()
+  private var environment = Environment()
   
   func interpret(_ statements: [Stmt<Expr>], onError: @escaping (RuntimeError) -> Void) {
     do {
@@ -18,6 +18,9 @@ final class Interpreter {
   
   private func execute(_ stmt: Stmt<Expr>) throws(RuntimeError) {
     switch stmt {
+    case let .block(statements):
+      fatalError()
+      
     case let .expression(expr):
       _ = try evaluate(expr)
     case let .print(expr):
@@ -30,6 +33,19 @@ final class Interpreter {
         value = try evaluate(initializer)
       }
       environment.define(name: name.lexeme, value: value)
+    }
+  }
+  
+  private func executeBlock(
+    _ statements: [Stmt<Expr>],
+    environment: Environment
+  ) throws(RuntimeError) {
+    let previousEnvironment = self.environment
+    defer { self.environment = previousEnvironment }
+    
+    self.environment = environment
+    for statement in statements {
+      try execute(statement)
     }
   }
   
